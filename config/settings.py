@@ -152,3 +152,29 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# AWS / MinIO Storage Configuration
+AWS_ACCESS_KEY_ID = 'student'
+AWS_SECRET_ACCESS_KEY = 'student'
+AWS_STORAGE_BUCKET_NAME = 'users-bucket'
+AWS_S3_ENDPOINT_URL = 'http://minio:9000'
+AWS_S3_CUSTOM_DOMAIN = '127.0.0.1:9000/users-bucket'
+AWS_S3_FILE_OVERWRITE = False
+AWS_S3_REGION_NAME = 'us-east-1'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "custom_domain": AWS_S3_CUSTOM_DOMAIN,
+            "region_name": AWS_S3_REGION_NAME,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}

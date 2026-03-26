@@ -23,3 +23,14 @@ class Student(AbstractUser):
 
     def __str__(self):
         return f"{self.username}"
+
+class UserPicture(models.Model):
+    user = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='pictures')
+    file = models.ImageField(upload_to='pictures/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class UserAvatar(models.Model):
+    user = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='avatars')
+    picture_string = models.TextField()
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
