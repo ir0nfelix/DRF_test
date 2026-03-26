@@ -161,6 +161,7 @@ AWS_S3_ENDPOINT_URL = 'http://minio:9000'
 AWS_S3_CUSTOM_DOMAIN = '127.0.0.1:9000/users-bucket'
 AWS_S3_FILE_OVERWRITE = False
 AWS_S3_REGION_NAME = 'us-east-1'
+AWS_S3_ADDRESSING_STYLE = 'path'
 
 STORAGES = {
     "default": {
@@ -172,6 +173,7 @@ STORAGES = {
             "endpoint_url": AWS_S3_ENDPOINT_URL,
             "custom_domain": AWS_S3_CUSTOM_DOMAIN,
             "region_name": AWS_S3_REGION_NAME,
+            "addressing_style": AWS_S3_ADDRESSING_STYLE,
         },
     },
     "staticfiles": {
