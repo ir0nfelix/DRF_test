@@ -10,6 +10,8 @@ services:
     environment:
       - DEBUG=1
     command: python manage.py runserver 0.0.0.0:8000
+    networks:
+      - app-network
     depends_on:
       minio-setup:
         condition: service_completed_successfully
@@ -25,19 +27,23 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+    networks:
+      app-network:
+        aliases:
+          - minio.local
 
   minio-setup:
     image: minio/mc:latest
     depends_on:
       - minio
+    networks:
+      - app-network
     entrypoint: >
-      /bin/sh -c "
-      sleep 5;
-      mc alias set myminio http://minio:9000 student student;
-      mc mb myminio/users-bucket || true;
-      mc anonymous set public myminio/users-bucket || true;
-      exit 0;
-      "
+      /bin/sh -c " sleep 5; mc alias set myminio http://minio.local:9000 student student; mc mb myminio/users-bucket || true; mc anonymous set public myminio/users-bucket || true; exit 0; "
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   minio_data:
