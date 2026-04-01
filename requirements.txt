@@ -10,3 +10,4 @@ django-storages>=1.14.0
 Pillow>=10.2.0
 faker
 mixer
+django-filter

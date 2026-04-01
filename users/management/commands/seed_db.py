@@ -46,8 +46,15 @@ class Command(BaseCommand):
                 tg_name = fake.user_name()[:24] if random.choice([True, False]) else ""
                 
                 email = fake.unique.email()
-                first_name = fake.first_name()
-                last_name = fake.last_name()
+                
+                gender = random.choice(['M', 'F'])
+                if gender == 'M':
+                    first_name = fake.first_name_male()
+                    last_name = fake.last_name_male()
+                else:
+                    first_name = fake.first_name_female()
+                    last_name = fake.last_name_female()
+                    
                 username = fake.unique.user_name()
                 
                 # using mixer for Student
