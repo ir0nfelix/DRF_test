@@ -23,7 +23,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentGroup
-        fields = ('id', 'group_name', 'count', 'is_archive')
+        fields = ('id', 'group_name', 'count', 'is_archive', 'start_year', 'diploma_year')
 
     def get_count(self, obj):
         return obj.students.count()
@@ -34,7 +34,7 @@ class GroupDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentGroup
-        fields = ('id', 'group_name', 'is_archive', 'students')
+        fields = ('id', 'group_name', 'is_archive', 'start_year', 'diploma_year', 'students')
 
 import base64
 import binascii

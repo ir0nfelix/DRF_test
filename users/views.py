@@ -1,5 +1,6 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Count
 from .models import Student, StudentGroup
 from .serializers import StudentSerializer, GroupSerializer, GroupDetailSerializer
@@ -14,7 +15,10 @@ class ProtectedStudentViewSet(viewsets.ReadOnlyModelViewSet):
 class ProtectedGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = StudentGroup.objects.annotate(students_count=Count('students')).all()
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_class = StudentGroupFilter
+    ordering_fields = ['group_name', 'students_count', 'start_year', 'diploma_year']
+    search_fields = ['group_name']
 
     def get_serializer_class(self):
         if self.action == 'list':

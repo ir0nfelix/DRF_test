@@ -3,6 +3,7 @@ from django.utils import timezone
 from .models import StudentGroup, Student
 
 class StudentGroupFilter(django_filters.FilterSet):
+    group_name = django_filters.CharFilter(lookup_expr='icontains')
     is_archive = django_filters.BooleanFilter(method='filter_is_archive')
     
     # Aliased field for diploma_year
