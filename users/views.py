@@ -3,25 +3,19 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Student, StudentGroup
 from .serializers import StudentSerializer, GroupSerializer, GroupDetailSerializer
 
-class StudentViewSet(viewsets.ModelViewSet):
+class ProtectedStudentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    permission_classes = [AllowAny]
-
-class ProtectedStudentViewSet(StudentViewSet):
     permission_classes = [IsAuthenticated]
 
-class GroupViewSet(viewsets.ModelViewSet):
+class ProtectedGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = StudentGroup.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'list':
             return GroupSerializer
         return GroupDetailSerializer
-
-class ProtectedGroupViewSet(GroupViewSet):
-    permission_classes = [IsAuthenticated]
 
 from rest_framework.response import Response
 from django.db import transaction

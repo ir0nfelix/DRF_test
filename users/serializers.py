@@ -4,27 +4,37 @@ from .models import Student, StudentGroup
 class StudentSerializer(serializers.ModelSerializer):
     # Read-only field to show group_name in student response
     group_name = serializers.CharField(source='user_group.group_name', read_only=True)
-    
+    is_currently_study = serializers.ReadOnlyField()
+    contacts = serializers.SerializerMethodField()
+
     class Meta:
         model = Student
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'user_group', 'group_name')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'user_group', 'group_name', 'date_of_birth', 'is_currently_study', 'contacts')
+
+    def get_contacts(self, obj):
+        return {
+            "phone": obj.phone,
+            "tg_name": obj.tg_name
+        }
 
 class GroupSerializer(serializers.ModelSerializer):
     count = serializers.SerializerMethodField()
+    is_archive = serializers.ReadOnlyField()
 
     class Meta:
         model = StudentGroup
-        fields = ('id', 'group_name', 'count')
+        fields = ('id', 'group_name', 'count', 'is_archive')
 
     def get_count(self, obj):
         return obj.students.count()
 
 class GroupDetailSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
+    is_archive = serializers.ReadOnlyField()
 
     class Meta:
         model = StudentGroup
-        fields = ('id', 'group_name', 'students')
+        fields = ('id', 'group_name', 'is_archive', 'students')
 
 import base64
 import binascii
