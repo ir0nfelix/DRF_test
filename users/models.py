@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 
 class StudentGroup(models.Model):
-    group_name = models.CharField(max_length=12, unique=True)
+    group_name = models.CharField(max_length=255, unique=True)
     start_year = models.PositiveSmallIntegerField(default=2024)
     diploma_year = models.PositiveSmallIntegerField(default=2028)
 

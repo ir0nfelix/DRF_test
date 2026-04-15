@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters    
+from rest_framework import viewsets, filters, mixins    
 from rest_framework.decorators import action
 from django.http import HttpResponse
 from django.db.models import Count
@@ -16,7 +16,7 @@ class StandardResultsPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
-class ProtectedStudentViewSet(viewsets.ReadOnlyModelViewSet):
+class ProtectedStudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
     permission_classes = [IsAuthenticated]
@@ -117,7 +117,7 @@ class ProtectedStudentViewSet(viewsets.ReadOnlyModelViewSet):
         wb.save(response)
         return response
 
-class ProtectedGroupViewSet(viewsets.ReadOnlyModelViewSet):
+class ProtectedGroupViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = StudentGroup.objects.annotate(students_count=Count('students')).all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
