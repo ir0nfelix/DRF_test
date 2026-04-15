@@ -10,6 +10,7 @@ from rest_framework.pagination import PageNumberPagination
 from .models import Student, StudentGroup
 from .serializers import StudentSerializer, GroupSerializer, GroupDetailSerializer
 from .filters import StudentGroupFilter, StudentFilter
+from .permissions import IsSuperUser
 
 class StandardResultsPagination(PageNumberPagination):
     page_size = 10
@@ -18,13 +19,96 @@ class StandardResultsPagination(PageNumberPagination):
 
 class ProtectedStudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_class = StudentFilter
     search_fields = ['first_name', 'last_name', 'user_group__group_name']
     ordering_fields = ['first_name', 'last_name', 'date_of_birth', 'user_group__group_name']
     pagination_class = StandardResultsPagination
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [IsSuperUser()]
+        return [IsAuthenticated()]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            from .serializers import StudentCreateSerializer
+            return StudentCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            from .serializers import StudentUpdateSerializer
+            return StudentUpdateSerializer
+        from .serializers import StudentSerializer
+        return StudentSerializer
+
+    @action(detail=False, methods=['post'], permission_classes=[IsSuperUser])
+    def import_students(self, request):
+        if 'file' not in request.FILES and 'csv' not in request.FILES:
+            return Response({"error": "No file uploaded. Please upload a CSV using 'file' or 'csv' key in form-data."}, status=400)
+            
+        file = request.FILES.get('file') or request.FILES.get('csv')
+        
+        try:
+            decoded_file = file.read().decode('utf-8').splitlines()
+        except UnicodeDecodeError:
+            return Response({"error": "Invalid encoding. Ensure the file is UTF-8 encoded."}, status=400)
+            
+        import csv
+        reader = csv.reader(decoded_file, delimiter=';')
+        
+        try:
+            next(reader)
+        except StopIteration:
+            return Response({"error": "File is empty"}, status=400)
+            
+        students_data = []
+        for row_idx, row in enumerate(reader, start=2):
+            if not row or all(not cell.strip() for cell in row):
+                continue
+                
+            if len(row) < 4:
+                return Response({"error": f"Row {row_idx} is malformed. Expected at least 4 columns (group, username, password, email)."}, status=400)
+                
+            student = {
+                'user_group': row[0].strip() if len(row) > 0 and row[0].strip() else None,
+                'username': row[1].strip() if len(row) > 1 else '',
+                'password': row[2].strip() if len(row) > 2 else '',
+                'email': row[3].strip() if len(row) > 3 else '',
+            }
+            
+            if len(row) > 4 and row[4].strip(): student['first_name'] = row[4].strip()
+            if len(row) > 5 and row[5].strip(): student['last_name'] = row[5].strip()
+            if len(row) > 6 and row[6].strip(): student['date_of_birth'] = row[6].strip()
+            if len(row) > 7 and row[7].strip(): student['phone'] = row[7].strip()
+            if len(row) > 8 and row[8].strip(): student['tg_name'] = row[8].strip()
+            
+            if len(row) > 9 and row[9].strip():
+                val = row[9].strip().lower()
+                student['is_student'] = val in ['true', '1', 'yes', 't']
+                
+            students_data.append(student)
+            
+        if not students_data:
+            return Response({"error": "No valid data rows found in CSV"}, status=400)
+            
+        from django.db import transaction
+        from .serializers import StudentCreateSerializer
+        
+        try:
+            with transaction.atomic():
+                serializer = StudentCreateSerializer(data=students_data, many=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({
+                        "message": f"Successfully imported {len(students_data)} students.",
+                        "imported_count": len(students_data)
+                    }, status=201)
+                else:
+                    return Response({
+                        "error": "Validation failed during import.",
+                        "details": serializer.errors
+                    }, status=400)
+        except Exception as e:
+            return Response({"error": f"Import failed due to server error: {str(e)}"}, status=500)
 
     @action(detail=False, methods=['get'])
     def csv_report(self, request):
@@ -119,7 +203,12 @@ class ProtectedStudentViewSet(viewsets.ModelViewSet):
 
 class ProtectedGroupViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = StudentGroup.objects.annotate(students_count=Count('students')).all()
-    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action not in ['list', 'retrieve']:
+            return [IsSuperUser()]
+        return [IsAuthenticated()]
+
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_class = StudentGroupFilter
     ordering_fields = ['group_name', 'students_count', 'start_year', 'diploma_year']

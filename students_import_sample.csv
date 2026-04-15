@@ -1,0 +1,4 @@
+user_group;username;password;email;first_name;last_name;date_of_birth;phone;tg_name;is_student
+1;ivan_ivanov;secure123;ivan@example.com;Иван;Иванов;2001-05-15;89991234567;@ivan_tg;True
+;maria_s;passWORD!;maria@example.com;Мария;Смирнова;2000-01-01;;;True
+2;vasya_pupkin;qwerty12;vasya@example.com;;;;89997654321;;False
