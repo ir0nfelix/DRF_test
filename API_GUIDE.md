@@ -51,6 +51,17 @@
 Студент не может менять свои системные доступы. Поля `username`, `password`, `email` полностью **ИСКЛЮЧЕНЫ** из контракта обновления.
 *Принимаются только поля:* `first_name`, `last_name`, `user_group`, `date_of_birth`, `phone`, `tg_name`.
 
+**Доступные фильтры (Query Params):**
+  - `first_name`, `last_name`: Поиск по подстроке.
+  - `group_name`: Поиск по названию группы (вложенная таблица).
+  - `date_of_birth`: Дата рождения (с модификаторами `__gt`, `__lt`, `__gte`, `__lte`, `__exact`).
+  - `is_student`: Фильтр по статусу. (Пример: `?is_student=True`)
+  - `user_group`: Фильтр по ID группы. (Пример: `?user_group=1`)
+  - `is_currently_study`: Обучается в данный момент. (Пример: `?is_currently_study=True`)
+  - `has_contacts`: Имеет заполненные контакты (телефон или TG). (Пример: `?has_contacts=True`)
+  - `has_avatar`: Есть загруженный аватар. (Пример: `?has_avatar=True`)
+  - `has_pictures`: Есть загруженные фотографии. (Пример: `?has_pictures=True`)
+
 ### Профили (GET)
 Ответ листинга пагинирован (DRF Standard). `email` перемещен в блок контактов, а также добавлены прикрепленные фотографии (`photos`):
 ```json
@@ -59,6 +70,9 @@
   "username": "student_login",
   "first_name": "John",
   "last_name": "Doe",
+  "is_currently_study": true,
+  "has_avatar": false,
+  "has_pictures": true,
   // ...
   "contacts": {
     "email": "student@example.com",

@@ -42,6 +42,8 @@ class StudentFilter(django_filters.FilterSet):
     
     is_currently_study = django_filters.BooleanFilter(method='filter_is_currently_study')
     has_contacts = django_filters.BooleanFilter(method='filter_has_contacts')
+    has_avatar = django_filters.BooleanFilter(method='filter_has_avatar')
+    has_pictures = django_filters.BooleanFilter(method='filter_has_pictures')
 
     class Meta:
         model = Student
@@ -66,5 +68,19 @@ class StudentFilter(django_filters.FilterSet):
             return queryset.filter(q_contacts)
         elif value is False:
             return queryset.exclude(q_contacts)
+        return queryset
+
+    def filter_has_avatar(self, queryset, name, value):
+        if value is True:
+            return queryset.filter(avatars__isnull=False).distinct()
+        elif value is False:
+            return queryset.filter(avatars__isnull=True)
+        return queryset
+
+    def filter_has_pictures(self, queryset, name, value):
+        if value is True:
+            return queryset.filter(pictures__isnull=False).distinct()
+        elif value is False:
+            return queryset.filter(pictures__isnull=True)
         return queryset
 

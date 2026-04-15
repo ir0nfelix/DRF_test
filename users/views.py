@@ -18,7 +18,7 @@ class StandardResultsPagination(PageNumberPagination):
     max_page_size = 100
 
 class ProtectedStudentViewSet(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
+    queryset = Student.objects.prefetch_related('avatars', 'pictures').all()
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_class = StudentFilter
     search_fields = ['first_name', 'last_name', 'user_group__group_name']
@@ -118,7 +118,7 @@ class ProtectedStudentViewSet(viewsets.ModelViewSet):
         response.write(u'\ufeff'.encode('utf8'))  # BOM for Excel
         
         writer = csv.writer(response, delimiter=';')
-        writer.writerow(['Логин', 'Имя', 'Фамилия', 'Учебная группа', 'Дата рождения', 'Способ связи', 'Обучается в данный момент'])
+        writer.writerow(['Логин', 'Имя', 'Фамилия', 'Учебная группа', 'Дата рождения', 'Способ связи', 'Обучается в данный момент', 'Есть аватарка', 'Есть фото'])
         
         for student in queryset:
             group_name = student.user_group.group_name if getattr(student, 'user_group', None) else ''
@@ -146,7 +146,9 @@ class ProtectedStudentViewSet(viewsets.ModelViewSet):
                 group_name, 
                 dob_str,
                 contact_str,
-                is_active_str
+                is_active_str,
+                'Да' if student.has_avatar else 'Нет',
+                'Да' if student.has_pictures else 'Нет'
             ])
         return response
 
@@ -167,7 +169,7 @@ class ProtectedStudentViewSet(viewsets.ModelViewSet):
         wrap_style = xlwt.XFStyle()
         wrap_style.alignment.wrap = 1
         
-        columns = ['Логин', 'Имя', 'Фамилия', 'Учебная группа', 'Дата рождения', 'Способ связи', 'Обучается в данный момент']
+        columns = ['Логин', 'Имя', 'Фамилия', 'Учебная группа', 'Дата рождения', 'Способ связи', 'Обучается в данный момент', 'Есть аватарка', 'Есть фото']
         for col_num, column_title in enumerate(columns):
             ws.write(0, col_num, column_title, header_style)
             
@@ -197,6 +199,8 @@ class ProtectedStudentViewSet(viewsets.ModelViewSet):
             ws.write(row_num, 4, dob_str, wrap_style)
             ws.write(row_num, 5, contact_str, wrap_style)
             ws.write(row_num, 6, is_active_str, wrap_style)
+            ws.write(row_num, 7, 'Да' if student.has_avatar else 'Нет', wrap_style)
+            ws.write(row_num, 8, 'Да' if student.has_pictures else 'Нет', wrap_style)
             
         wb.save(response)
         return response

@@ -68,13 +68,15 @@ class UserAvatarSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(source='user_group.group_name', read_only=True)
     is_currently_study = serializers.ReadOnlyField()
+    has_avatar = serializers.ReadOnlyField()
+    has_pictures = serializers.ReadOnlyField()
     contacts = serializers.SerializerMethodField()
     photos = UserPictureSerializer(source='pictures', many=True, read_only=True)
     avatars = UserAvatarSerializer(many=True, read_only=True)
 
     class Meta:
         model = Student
-        fields = ('id', 'username', 'first_name', 'last_name', 'user_group', 'group_name', 'date_of_birth', 'is_currently_study', 'contacts', 'photos', 'avatars', 'is_student')
+        fields = ('id', 'username', 'first_name', 'last_name', 'user_group', 'group_name', 'date_of_birth', 'is_currently_study', 'has_avatar', 'has_pictures', 'contacts', 'photos', 'avatars', 'is_student')
         extra_kwargs = {
             'username': {'read_only': True}
         }

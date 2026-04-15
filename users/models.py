@@ -51,6 +51,18 @@ class Student(AbstractUser):
     def has_contacts(self):
         return any([self.phone, self.tg_name])
 
+    @property
+    def has_avatar(self):
+        if hasattr(self, '_prefetched_objects_cache') and 'avatars' in self._prefetched_objects_cache:
+            return len(self.avatars.all()) > 0
+        return self.avatars.exists()
+
+    @property
+    def has_pictures(self):
+        if hasattr(self, '_prefetched_objects_cache') and 'pictures' in self._prefetched_objects_cache:
+            return len(self.pictures.all()) > 0
+        return self.pictures.exists()
+
     def __str__(self):
         return f"{self.username}"
 
