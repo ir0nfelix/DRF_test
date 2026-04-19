@@ -55,14 +55,13 @@ class ProtectedStudentViewSet(viewsets.ModelViewSet):
         import csv
         reader = csv.reader(decoded_file, delimiter=';')
         
-        try:
-            next(reader)
-        except StopIteration:
-            return Response({"error": "File is empty"}, status=400)
-            
         students_data = []
-        for row_idx, row in enumerate(reader, start=2):
+        for row_idx, row in enumerate(reader, start=1):
             if not row or all(not cell.strip() for cell in row):
+                continue
+                
+            # Skip header row if it is detected based on column names
+            if row_idx == 1 and len(row) > 1 and row[1].strip().lower() in ['username', 'логин', 'login']:
                 continue
                 
             if len(row) < 4:
